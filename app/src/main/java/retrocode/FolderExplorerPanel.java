@@ -6,15 +6,11 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.event.TreeWillExpandListener;
 import javax.swing.event.TreeExpansionEvent;
-import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.Color;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-
 import java.awt.BorderLayout;
 import java.io.File;
 import java.awt.event.*;
@@ -32,7 +28,6 @@ import javax.swing.ToolTipManager;
 public class FolderExplorerPanel extends JPanel {
     private final JPanel headerPanel;
     private final JButton collapseButton;
-    private final JLabel headerLabel;
     private final JPanel contentPanel;
     private final JPanel placeholderPanel;
     private final JButton openFolderButton;
@@ -53,24 +48,57 @@ public class FolderExplorerPanel extends JPanel {
         this.fileOpenListener = listener;
     }
 
+    public JButton getCollapseButton() {
+        return collapseButton;
+    }
+
     public FolderExplorerPanel() {
         setLayout(new BorderLayout());
+        setOpaque(false);
+        setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
         // Header bar for collapse/expand
-        headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(new Color(35, 38, 45));
-        headerLabel = new JLabel("  FILES");
-        headerLabel.setForeground(Color.WHITE);
-        headerLabel.setFont(new Font("JetBrains Mono", Font.BOLD, 13));
-        collapseButton = new JButton("-");
+        headerPanel = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(java.awt.Graphics g) {
+                super.paintComponent(g);
+                java.awt.Graphics2D g2d = (java.awt.Graphics2D) g;
+                java.awt.GradientPaint gp = new java.awt.GradientPaint(0, 0, new Color(50, 55, 70), getWidth(), getHeight(), new Color(30, 32, 40));
+                g2d.setPaint(gp);
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 14, 14);
+            }
+        };
+        headerPanel.setOpaque(false);
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+        collapseButton = new JButton("▼") {
+            @Override
+            public void paintComponent(java.awt.Graphics g) {
+                if (getModel().isRollover()) {
+                    setBackground(new Color(70, 80, 100));
+                } else {
+                    setBackground(new Color(35, 38, 45));
+                }
+                super.paintComponent(g);
+            }
+        };
         collapseButton.setFocusable(false);
         collapseButton.setMargin(new Insets(0, 6, 0, 6));
-        collapseButton.setFont(new Font("JetBrains Mono", Font.BOLD, 13));
-        collapseButton.setBackground(new Color(35, 38, 45));
+        collapseButton.setFont(new Font("JetBrains Mono", Font.BOLD, 10));
         collapseButton.setForeground(Color.WHITE);
         collapseButton.setBorderPainted(false);
         collapseButton.setOpaque(true);
-        headerPanel.add(headerLabel, BorderLayout.WEST);
-        headerPanel.add(collapseButton, BorderLayout.EAST);
+        collapseButton.setContentAreaFilled(false);
+        collapseButton.setBorder(BorderFactory.createEmptyBorder(4, 10, 4, 10));
+        collapseButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                collapseButton.setBackground(new Color(70, 80, 100));
+                collapseButton.setOpaque(true);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                collapseButton.setBackground(new Color(35, 38, 45));
+                collapseButton.setOpaque(true);
+            }
+        });
+        headerPanel.add(collapseButton, BorderLayout.CENTER);
         add(headerPanel, BorderLayout.NORTH);
 
         // Content panel (tree or placeholder)
@@ -78,17 +106,47 @@ public class FolderExplorerPanel extends JPanel {
         add(contentPanel, BorderLayout.CENTER);
 
         // Placeholder panel
-        placeholderPanel = new JPanel(new GridBagLayout());
-        placeholderPanel.setBackground(new Color(40, 44, 52));
+        placeholderPanel = new JPanel(new GridBagLayout()) {
+            @Override
+            protected void paintComponent(java.awt.Graphics g) {
+                super.paintComponent(g);
+                java.awt.Graphics2D g2d = (java.awt.Graphics2D) g;
+                g2d.setColor(new Color(40, 44, 52, 220));
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
+            }
+        };
+        placeholderPanel.setOpaque(false);
+        placeholderPanel.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
         JLabel placeholderLabel = new JLabel("No folder open");
         placeholderLabel.setForeground(Color.LIGHT_GRAY);
         placeholderLabel.setFont(new Font("JetBrains Mono", Font.PLAIN, 14));
-        openFolderButton = new JButton("Open Folder...");
+        openFolderButton = new JButton("Open Folder...") {
+            @Override
+            public void paintComponent(java.awt.Graphics g) {
+                if (getModel().isRollover()) {
+                    setBackground(new Color(80, 90, 110));
+                } else {
+                    setBackground(new Color(60, 63, 65));
+                }
+                super.paintComponent(g);
+            }
+        };
         openFolderButton.setFont(new Font("JetBrains Mono", Font.PLAIN, 13));
-        openFolderButton.setBackground(new Color(60, 63, 65));
         openFolderButton.setForeground(Color.WHITE);
         openFolderButton.setFocusPainted(false);
-        openFolderButton.setBorder(BorderFactory.createEmptyBorder(6, 16, 6, 16));
+        openFolderButton.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
+        openFolderButton.setContentAreaFilled(false);
+        openFolderButton.setOpaque(true);
+        openFolderButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                openFolderButton.setBackground(new Color(80, 90, 110));
+                openFolderButton.setOpaque(true);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                openFolderButton.setBackground(new Color(60, 63, 65));
+                openFolderButton.setOpaque(true);
+            }
+        });
         JPanel innerPanel = new JPanel();
         innerPanel.setOpaque(false);
         innerPanel.setLayout(new BoxLayout(innerPanel, BoxLayout.Y_AXIS));
@@ -117,7 +175,8 @@ public class FolderExplorerPanel extends JPanel {
         folderTree.setShowsRootHandles(true);
         folderTree.setCellRenderer(new FileTreeCellRenderer());
         folderTree.setFont(new Font("JetBrains Mono", Font.PLAIN, 13));
-        folderTree.setBackground(new Color(40, 44, 52));
+        folderTree.setBackground(new Color(40, 44, 52, 220));
+        folderTree.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
         folderTree.setForeground(Color.WHITE);
         folderTree.setRowHeight(22);
         scrollPane = new JScrollPane(folderTree);
@@ -242,7 +301,7 @@ public class FolderExplorerPanel extends JPanel {
         collapseButton.addActionListener(e -> {
             collapsed = !collapsed;
             updateContentPanel();
-            collapseButton.setText(collapsed ? "+" : "-");
+            collapseButton.setText(collapsed ? "▶" : "▼");
         });
 
         // Open folder button action
