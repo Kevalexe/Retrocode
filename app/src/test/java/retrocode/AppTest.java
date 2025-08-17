@@ -7,8 +7,19 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class AppTest {
-    @Test void appHasAGreeting() {
-        App classUnderTest = new App();
-        assertNotNull(classUnderTest.getGreeting(), "app should have a greeting");
+    @Test void themeManagerExists() {
+        assertNotNull(ThemeManager.getCurrentTheme(), "ThemeManager should have a current theme");
+    }
+    
+    @Test void themeSwitchingWorks() {
+        ThemeManager.Theme originalTheme = ThemeManager.getCurrentTheme();
+        ThemeManager.Theme newTheme = originalTheme == ThemeManager.Theme.DARK ? 
+            ThemeManager.Theme.LIGHT : ThemeManager.Theme.DARK;
+        
+        ThemeManager.setTheme(newTheme);
+        assertEquals(newTheme, ThemeManager.getCurrentTheme(), "Theme should switch correctly");
+        
+        // Restore original theme
+        ThemeManager.setTheme(originalTheme);
     }
 }
